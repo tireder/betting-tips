@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific
+*.xlsx
+*.xls
+*.csv
+*.db
+*.sqlite
+*.sqlite3
+team_history_cache.db
+api_fixtures_debug.json
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Documentation
+*.md
+README.md
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+
