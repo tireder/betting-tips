@@ -1,0 +1,73 @@
+# Fixed Dockerfile for Render.com - addresses JavaScript module loading issues
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY *.py ./
+
+# Create Streamlit config directory
+RUN mkdir -p /root/.streamlit
+
+# Copy config file (more reliable than echo)
+COPY .streamlit/config.toml /root/.streamlit/config.toml
+
+# Create startup script with proper environment setup
+RUN cat > /app/start.sh << 'EOF'
+#!/bin/bash
+set -e
+
+# Get port from Render or default
+PORT=${PORT:-8501}
+
+# Set Streamlit environment variables
+export STREAMLIT_SERVER_PORT=$PORT
+export STREAMLIT_SERVER_ADDRESS=0.0.0.0
+export STREAMLIT_SERVER_HEADLESS=true
+export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+export STREAMLIT_SERVER_ENABLE_CORS=true
+export STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=true
+export STREAMLIT_SERVER_BASE_URL_PATH=""
+
+echo "=========================================="
+echo "Starting Streamlit on port $PORT"
+echo "Server address: 0.0.0.0"
+echo "Headless mode: true"
+echo "CORS enabled: true"
+echo "=========================================="
+
+# Run Streamlit with explicit flags
+exec streamlit run ai_data_analyst.py \
+    --server.port=$PORT \
+    --server.address=0.0.0.0 \
+    --server.headless=true \
+    --server.enableCORS=true \
+    --server.enableXsrfProtection=true \
+    --browser.gatherUsageStats=false
+EOF
+
+RUN chmod +x /app/start.sh
+
+# Expose port
+EXPOSE 8501
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python -c "import os, requests; port = os.getenv('PORT', '8501'); requests.get(f'http://localhost:{port}/_stcore/health', timeout=5)" || exit 1
+
+# Run startup script
+CMD ["/app/start.sh"]
+

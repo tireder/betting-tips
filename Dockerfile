@@ -21,19 +21,22 @@ COPY *.py ./
 # Create directory for Streamlit config
 RUN mkdir -p /root/.streamlit
 
-# Create Streamlit config file for Render.com
-RUN echo "[server]\n\
-port = 8501\n\
-address = 0.0.0.0\n\
-headless = true\n\
-enableCORS = false\n\
-enableXsrfProtection = false\n\
-" > /root/.streamlit/config.toml
+# Copy Streamlit config file (more reliable than echo)
+COPY .streamlit/config.toml /root/.streamlit/config.toml
 
 # Create startup script to handle PORT env var from Render
+# Also set environment variables for Streamlit
 RUN echo '#!/bin/bash\n\
+set -e\n\
 PORT=${PORT:-8501}\n\
-exec streamlit run ai_data_analyst.py --server.port=$PORT --server.address=0.0.0.0\n\
+export STREAMLIT_SERVER_PORT=$PORT\n\
+export STREAMLIT_SERVER_ADDRESS=0.0.0.0\n\
+export STREAMLIT_SERVER_HEADLESS=true\n\
+export STREAMLIT_BROWSER_GATHER_USAGE_STATS=false\n\
+export STREAMLIT_SERVER_ENABLE_CORS=true\n\
+export STREAMLIT_SERVER_ENABLE_XSRF_PROTECTION=true\n\
+echo "Starting Streamlit on port $PORT..."\n\
+exec streamlit run ai_data_analyst.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --server.enableCORS=true\n\
 ' > /app/start.sh && chmod +x /app/start.sh
 
 # Health check (uses PORT env var or defaults to 8501)

@@ -48,6 +48,12 @@ In Render dashboard, add these **Environment Variables**:
 
 ## 🔧 Troubleshooting
 
+### JavaScript Module Loading Error
+If you see: `TypeError: Failed to fetch dynamically imported module`
+- **See `TROUBLESHOOTING.md`** for detailed solutions
+- Quick fix: The updated Dockerfile now has CORS enabled
+- Clear browser cache and rebuild
+
 ### Build Fails
 - Check build logs in Render dashboard
 - Verify `requirements.txt` is valid
@@ -62,6 +68,8 @@ In Render dashboard, add these **Environment Variables**:
 - Render automatically sets `PORT` env var
 - Dockerfile handles this via startup script
 - If issues persist, check Render logs
+
+**For more help:** See `TROUBLESHOOTING.md`
 
 ## 📝 Notes
 
